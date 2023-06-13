@@ -301,8 +301,9 @@ def convert_pianoroll_to_midi(y, sr, pianoroll):
 
     return MyMIDI
 
-def main():
-    minimum_note = 'A2'
+def main(buffer=None):
+# def main():
+    minimum_note = 'A0'
     max_note = 'E6'
     voiced_acc = 0.9
     onset_acc = 0.8
@@ -313,11 +314,13 @@ def main():
     spread = 0.6
 
     # drive.mount('/content/drive/')
-    audio_file_path = "track3-estrofe.wav"
-
+    audio_file_path = "escalamr.wav"
 
     y, sr = librosa.load(audio_file_path)
-    # print(y)
+    
+    sr = 22050
+    y = buffer
+    print(y)
 
     matrix = build_transition_matrix(minimum_note, max_note, 0.9, 0.1)
     prob = calc_probabilities(y, minimum_note, max_note, sr, frame_length, window_length,
@@ -326,8 +329,8 @@ def main():
     init_mat[0] = 1
 
     states = librosa.sequence.viterbi(prob, matrix, p_init=init_mat)
-    print(f"states len: {states}")
-    print(f"y len: {len(y)}")
+    # print(f"states len: {states}")
+    # print(f"y len: {len(y)}")
     # print(states)
     piano_format = convert_states_to_pianoroll(states, minimum_note, max_note, hop_length / sr)
     # print(pianoroll)
@@ -337,4 +340,4 @@ def main():
         midi_format.writeFile(output_file)
 
 
-main()
+# main()

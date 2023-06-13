@@ -3,6 +3,7 @@ import argparse
 import sounddevice as sd
 import numpy  # Make sure NumPy is loaded before it is used in the callback
 assert numpy  # avoid "imported but unused" message (W0611)
+import way_to_midi as wtm
 
 
 def int_or_str(text):
@@ -40,15 +41,15 @@ parser.add_argument('--blocksize', type=int, help='block size')
 parser.add_argument('--latency', type=float, help='latency in seconds')
 args = parser.parse_args(remaining)
 
-
-def callback(indata, outdata, frames, time, status):
+data = []
+def callback(indata, frames, time, status):
     if status:
         print(status)
-    outdata[:] = indata
+    data.append(numpy.squeeze(indata))
 
 
 try:
-    with sd.Stream(device=(args.input_device, args.output_device),
+    with sd.InputStream(device=args.input_device,
                    samplerate=args.samplerate, blocksize=args.blocksize,
                    dtype=args.dtype, latency=args.latency,
                    channels=args.channels, callback=callback):
@@ -60,3 +61,20 @@ except KeyboardInterrupt:
     parser.exit('')
 except Exception as e:
     parser.exit(type(e).__name__ + ': ' + str(e))
+
+print(len(data))
+# print(data)
+rec = numpy.array((len(data)*512,))
+aux = numpy.stack(data)
+rec = numpy.concatenate(numpy.squeeze(aux))
+
+print(numpy.shape(rec))
+print(len(rec))
+
+print(rec)
+audio_file_path = "escalamr.wav"
+import librosa
+y, sr = librosa.load(audio_file_path)
+print(sr)
+
+wtm.main(buffer=rec)
