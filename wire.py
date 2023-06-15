@@ -2,7 +2,7 @@ import argparse
 
 import sounddevice as sd
 import numpy as np
-import way_to_midi as wtm
+import wav_to_midi as wtm
 
 
 def int_or_str(text):
