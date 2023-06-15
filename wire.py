@@ -1,8 +1,7 @@
 import argparse
 
 import sounddevice as sd
-import numpy  # Make sure NumPy is loaded before it is used in the callback
-assert numpy  # avoid "imported but unused" message (W0611)
+import numpy as np
 import way_to_midi as wtm
 
 
@@ -45,7 +44,7 @@ data = []
 def callback(indata, frames, time, status):
     if status:
         print(status)
-    data.append(numpy.squeeze(indata))
+    data.append(np.frombuffer(indata, dtype=np.int16).astype(float))
 
 
 try:
@@ -62,19 +61,9 @@ except KeyboardInterrupt:
 except Exception as e:
     parser.exit(type(e).__name__ + ': ' + str(e))
 
-print(len(data))
-# print(data)
-rec = numpy.array((len(data)*512,))
-aux = numpy.stack(data)
-rec = numpy.concatenate(numpy.squeeze(aux))
 
-print(numpy.shape(rec))
-print(len(rec))
+rec = np.array((len(data)*args.samplerate,))
+rec = np.concatenate(np.squeeze(np.stack(data)))
 
-print(rec)
-audio_file_path = "escalamr.wav"
-import librosa
-y, sr = librosa.load(audio_file_path)
-print(sr)
 
-wtm.main(buffer=rec)
+wtm.main(buffer=rec, sr=args.samplerate)

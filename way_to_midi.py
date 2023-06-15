@@ -301,7 +301,7 @@ def convert_pianoroll_to_midi(y, sr, pianoroll):
 
     return MyMIDI
 
-def main(buffer=None):
+def main(buffer=None, sr=None):
 # def main():
     minimum_note = 'A0'
     max_note = 'E6'
@@ -314,13 +314,12 @@ def main(buffer=None):
     spread = 0.6
 
     # drive.mount('/content/drive/')
-    audio_file_path = "escalamr.wav"
+    # audio_file_path = "escalamr.wav"
 
-    y, sr = librosa.load(audio_file_path)
+    # y, sr = librosa.load(audio_file_path)
     
-    sr = 22050
+    sr = sr
     y = buffer
-    print(y)
 
     matrix = build_transition_matrix(minimum_note, max_note, 0.9, 0.1)
     prob = calc_probabilities(y, minimum_note, max_note, sr, frame_length, window_length,
