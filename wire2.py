@@ -58,18 +58,17 @@ class AudioProcessor:
                                latency=self.latency,
                                channels=self.channels,
                                callback=self.callback):
-                print('#' * 80)
-                print('Press Return to quit')
-                print('#' * 80)
+                
+                print('Gravando...')
                 input()
-                # time.sleep(2 * self.beats * self.figureOfTime * self.beatTime)
+
         except KeyboardInterrupt:
             pass
         except Exception as e:
             print(type(e).__name__ + ': ' + str(e))
             exit()
 
-        print('stop')
+        print('Fim da gravação...')
 
     def start_processing(self):
         thread_audio = threading.Thread(target=self.capture_audio)
