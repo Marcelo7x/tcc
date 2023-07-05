@@ -2,7 +2,8 @@ import argparse
 
 import sounddevice as sd
 import numpy as np
-import wav_to_midi as wtm
+import teste as wtm
+import time
 
 
 def int_or_str(text):
@@ -40,6 +41,18 @@ parser.add_argument('--blocksize', type=int, help='block size')
 parser.add_argument('--latency', type=float, help='latency in seconds')
 args = parser.parse_args(remaining)
 
+figureOfTime = 1
+beats = 4
+going = 60
+
+beatTime = 60.0/going
+compassTime = 4 * figureOfTime * beatTime
+
+windowSize = args.blocksize / args.samplerate
+windowPerBeat = beatTime / windowSize
+
+twoCompasse = 2 * beats * windowPerBeat
+
 data = []
 def callback(indata, frames, time, status):
     if status:
@@ -48,19 +61,22 @@ def callback(indata, frames, time, status):
 
 
 try:
-    with sd.InputStream(device=args.input_device,
-                   samplerate=args.samplerate, blocksize=args.blocksize,
-                   dtype=args.dtype, latency=args.latency,
-                   channels=args.channels, callback=callback):
-        print('#' * 80)
-        print('press Return to quit')
-        print('#' * 80)
-        input()
+        with sd.InputStream(device=args.input_device,
+                    samplerate=args.samplerate, blocksize=args.blocksize,
+                    dtype=args.dtype, latency=args.latency,
+                    channels=args.channels, callback=callback):
+            print('#' * 80)
+            print('press Return to quit')
+            print('#' * 80)
+            input()
+            # time.sleep(2 * beats * figureOfTime * beatTime)
+            
 except KeyboardInterrupt:
     parser.exit('')
 except Exception as e:
     parser.exit(type(e).__name__ + ': ' + str(e))
 
+print('stop')
 
 rec = np.array((len(data)*args.samplerate,))
 rec = np.concatenate(np.squeeze(np.stack(data)))
