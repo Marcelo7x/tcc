@@ -2,6 +2,7 @@ import numpy as np
 import librosa
 import midiutil
 import re
+import scipy.signal as signal
 
 class NotesProcess():
     
@@ -328,8 +329,6 @@ class NotesProcess():
         MyMIDI = midiutil.MIDIFile(1)
         MyMIDI.addTempo(0, 0, bpm)
 
-        # print(f"len off : {onsets}")
-
         for i in range(len(onsets)):
             MyMIDI.addNote(0, 0, int(pianoroll[i][2]), onsets[i], durations[i], 100)
 
@@ -338,17 +337,32 @@ class NotesProcess():
     
 
     def process(self, y, sr):
-        transition_matrix = self._build_transition_matrix(self.minimum_note, self.max_note, 0.9, 0.1)
+        transition_matrix = self._build_transition_matrix(self.minimum_note, self.max_note, 0.15, 0.7)
         prob = self._calc_probabilities(y, self.minimum_note, self.max_note, sr, self.frame_length, self.window_length,
                                     self.hop_length, self.pitch_acc, self.voiced_acc, self.onset_acc, self.spread)
         init_mat = np.zeros( transition_matrix.shape[0])
         init_mat[0] = 1
         self.states = librosa.sequence.viterbi(prob, transition_matrix, p_init=init_mat)
 
-    def getNotesPianoFormart(self, y, sr):
-        # audio_file_path = "escalamr.wav"
-        # y, sr = librosa.load(audio_file_path)
+    def highpass_filter(self, y, sr):
+        filter_stop_freq = 70  # Hz
+        filter_pass_freq = 100  # Hz
+        filter_order = 1001
 
+        # High-pass filter
+        nyquist_rate = sr / 2.
+        desired = (0, 0, 1, 1)
+        bands = (0, filter_stop_freq, filter_pass_freq, nyquist_rate)
+        filter_coefs = signal.firls(filter_order, bands, desired, nyq=nyquist_rate)
+
+        # Apply high-pass filter
+        filtered_audio = signal.filtfilt(filter_coefs, [1], y)
+        return filtered_audio
+
+    def getNotesPianoFormart(self, y, sr):
+        # audio_file_path = "pastor.m4a"
+        # y, sr = librosa.load(audio_file_path)
+        y = self.highpass_filter(y, sr)
         self.process(y, sr)
         piano_format = self._convert_states_to_pianoroll(self.states, self.minimum_note, self.max_note, self.hop_length / sr)
         # print(piano_format)
@@ -362,3 +376,6 @@ class NotesProcess():
 
 
 # NotesProcess().getNotesPianoFormart(y=None, sr=None)
+if __name__ == '__main__':
+    notes_p = NotesProcess()
+    notes_p.getNotesPianoFormart(y=None, sr=None)
