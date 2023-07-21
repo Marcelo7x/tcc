@@ -1,11 +1,11 @@
 import sounddevice as sd
 import numpy as np
-import notesProcess as pn
+import notes_process as pn
 import time
 import os
 import threading
 
-class AudioProcessor:
+class CapAudio:
     def __init__(self):
         self.figureOfTime = 1
         self.beats = 4
@@ -38,11 +38,14 @@ class AudioProcessor:
         print("Processando áudio")
         
         while not self.stop:
-            if len(self.data) >= self.windowPerCompasse:
+            if len(self.data) >= 2 * self.windowPerCompasse:
+                print("tratando")
                 rec = np.array((len(self.data) * self.samplerate,))
                 rec = np.concatenate(np.squeeze(np.stack(self.data)))
                 del self.data[:]
-                print(pn.NotesProcess().getNotesPianoFormart(y=rec, sr=self.samplerate))
+                notes_piano_formart = pn.NotesProcess().getNotesPianoFormart(y=rec, sr=self.samplerate)
+                # print([[lista[3]] for lista in notes_piano_formart])
+                print(notes_piano_formart)
 
     def callback(self, indata, frames, time, status):
         if status:
@@ -82,5 +85,5 @@ class AudioProcessor:
         thread_process.join()
 
 if __name__ == '__main__':
-    audio_processor = AudioProcessor()
-    audio_processor.start_processing()
+    c_audio = CapAudio()
+    c_audio.start_processing()
